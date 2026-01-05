@@ -1,0 +1,53 @@
+import geopandas as gpd
+import os
+import glob
+
+# --- CONFIGURACIÓN ---
+folder_path = r'C:\Users\mercedes.sanchez\Documents\Cartografía\RNC_2025'
+output_folder = os.path.join(folder_path, 'pmtiles_resultado')
+
+# Crear carpeta de salida si no existe
+if not os.path.exists(output_folder):
+    os.makedirs(output_folder)
+
+# Buscar todos los geojson
+archivos = glob.glob(os.path.join(folder_path, "*.geojson"))
+
+print(f"Se encontraron {len(archivos)} archivos para procesar.")
+
+for ruta_entrada in archivos:
+    nombre_archivo = os.path.basename(ruta_entrada).replace(".geojson", ".pmtiles")
+    ruta_salida = os.path.join(output_folder, nombre_archivo)
+    
+    print(f"\nProcesando: {os.path.basename(ruta_entrada)}")
+    
+    try:
+        # 1. Leer y Limpiar (Equivalente al Paso 1 y 2 de tu Bash)
+        gdf = gpd.read_file(ruta_entrada, engine='pyogrio')
+        
+        # Hacer geometrías válidas y eliminar nulos
+        gdf = gdf[gdf.geometry.notnull()]
+        gdf['geometry'] = gdf.geometry.make_valid()
+        
+        # Asegurar EPSG:4326
+        if gdf.crs != "EPSG:4326":
+            gdf = gdf.to_crs(epsg=4326)
+        
+        # 2. Exportar (Equivalente al Paso 3 y 4 de tu Bash)
+        gdf.to_file(
+            ruta_salida,
+            driver='PMTiles',
+            engine='pyogrio',
+            layer_options={
+                "MINZOOM": "0",
+                "MAXZOOM": "15",
+                "SIMPLIFICATION": "0.0001",  # Ajuste fino para carreteras
+                "MAX_SIZE": "500000"         # Intenta evitar el error de peso
+            }
+        )
+        print(f"Hecho: {nombre_archivo}")
+        
+    except Exception as e:
+        print(f"Error en {nombre_archivo}: {e}")
+
+print("\n--- PROCESO FINALIZADO ---")
