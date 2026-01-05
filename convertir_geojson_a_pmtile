@@ -2,8 +2,8 @@ import geopandas as gpd
 import os
 import glob
 
-# --- CONFIGURACIÓN ---
-folder_path = r'C:\Users\mercedes.sanchez\Documents\Cartografía\RNC_2025'
+# --- INGRESAR CARPETA DE ENTRADA Y CARPETA DE SALIDA ---
+folder_path = r'C:\Users\mercedes.sanchez\Documents'
 output_folder = os.path.join(folder_path, 'pmtiles_resultado')
 
 # Crear carpeta de salida si no existe
